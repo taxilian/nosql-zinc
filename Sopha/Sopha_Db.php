@@ -330,6 +330,44 @@ class Sopha_Db
                 break;
         }
     }
+
+    /**
+     * Call a show function of a design document and return the result as a string
+     *
+     * @param  string $designDoc design document name
+     * @param  string $show      show function name
+     * @param  string $id        document id to load in the show
+     * @param  array  $params    parameters to pass to the show
+     * @return array
+     */
+    public function getShow($designDoc, $show, $id, array $params = array()) {
+        require_once dirname(__file__) . "/Sopha_Json.php";
+
+        $url = $this->_db_uri . "_design/" . urlencode($designDoc) . "/_show/" . urlencode($show) . "/" . urlencode($id);
+        $request = new Sopha_Http_Request($url);
+        foreach($params as $k => $v) {
+            $request->addQueryParam($k, $v);
+        }
+
+        $response = $request->send();
+
+        switch($response->getStatus()) {
+            case 200:
+                return $response->getDocument();
+                break;
+
+            case 404:
+                require_once dirname(__file__) . '/Db/Exception.php';
+                throw new Sopha_Db_Exception("Show function '$designDoc/$show' does not exist", $response->getStatus());
+                break;
+
+            default:
+                require_once dirname(__file__) . '/Db/Exception.php';
+                throw new Sopha_Db_Exception("Unexpected response from server: " . 
+                	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
+                break;
+        }
+    }
     
     /**
      * Call an ad-hoc view function

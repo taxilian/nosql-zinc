@@ -130,12 +130,12 @@ class Sopha_Document
      */
     public function delete()
     {
-        if (! $this->_url) {
+        if (! $this->_url || !$this->getId()) {
             require_once dirname(__file__) . '/Document/Exception.php';
             throw new Sopha_Document_Exception("Unable to delete a document without known URL");
         }
         
-        require_once dirname(__file__) . '/Http/Request.php';
+        $this->_db->delete($this->getId(), $this->getRevision());
     }
     
     /**

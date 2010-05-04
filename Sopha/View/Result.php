@@ -44,6 +44,7 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
     public function __construct(array $result, $return = self::RETURN_ARRAY, $db = null)
     {
         $this->_db = $db;
+        if ($db === null) die("It's null!");
         if (! isset($result['rows'])) {
             require_once dirname(__file__) . '/../View/Result/Exception.php';
             throw new Sopha_View_Result_Exception("Result does not seem to be a " . 
@@ -207,7 +208,7 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
                 break;
                 
             case self::RETURN_OBJECT:
-                $ret =  new $this->doc_class($this->rows[$offset]['doc'], $this->_db);
+                $ret =  new $this->doc_class($this->rows[$offset]['doc'], null, $this->_db);
                 break;
         }
         return $ret;
