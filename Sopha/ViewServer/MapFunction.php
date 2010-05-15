@@ -17,7 +17,6 @@ class Sopha_ViewServer_MapFunction
 		$code = preg_replace('/(function\s*\(.+?\))/', '\$this->_func = \1 use($view)', $code, 1);
 		
 		if (eval("$code;") === false || ! is_callable($this->_func)) {
-			require_once dirname(__file__) . '/Exception.php';
 			throw new Sopha_ViewServer_Exception("Unable to compile view function");
 		}
 	}

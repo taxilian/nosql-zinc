@@ -79,7 +79,6 @@ class Sopha_Document_Attachment
         
         if ($type) {
             if (! $data) {
-                require_once dirname(__file__) . '/Exception.php';
                 throw new Sopha_Document_Exception("Attachment cannot be created with type and no data");
             }
             $this->type = $type;
@@ -87,7 +86,6 @@ class Sopha_Document_Attachment
         
         if ($data) {
             if (! $type) {
-                require_once dirname(__file__) . '/Exception.php';
                 throw new Sopha_Document_Exception("Attachment cannot be created with data and no type");
             }
             $this->data = $data;
@@ -166,7 +164,6 @@ class Sopha_Document_Attachment
     public function passthru()
     {
         if (headers_sent()) {
-            require_once dirname(__file__) . '/Exception.php';
             throw new Sopha_Document_Exception("Can't passthru attachment: headers already sent");
         }
         
@@ -185,8 +182,6 @@ class Sopha_Document_Attachment
      */
     protected function _lazyLoadData()
     {
-        require_once dirname(__file__) . '/../Http/Request.php';
-        
         $request = new Sopha_Http_Request($this->docUrl . '/' . $this->name);
         $response = $request->send();
 
@@ -198,12 +193,10 @@ class Sopha_Document_Attachment
                 break;
                 
             case 404:
-                require_once dirname(__file__) . '/Exception.php';
                 throw new Sopha_Document_Exception("Attachment '$this->name' does not exist", $response->getStatus());
                 break;
                 
             default:
-                require_once dirname(__file__) . '/../Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                     "{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;

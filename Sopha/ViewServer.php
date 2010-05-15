@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__file__) . '/ViewServer/MapFunction.php';
-
 class Sopha_ViewServer
 {
 	/**

@@ -21,8 +21,6 @@
  * @license    http://prematureoptimization.org/sopha/license/new-bsd 
  */
 
-require_once dirname(__file__) . '/../../Exception.php';
-
 class Sopha_View_Result_Exception extends Sopha_Exception 
 {
     

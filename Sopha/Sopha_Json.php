@@ -69,7 +69,6 @@ class Sopha_Json
             return json_decode($encodedValue, $objectDecodeType);
         }
 
-        require_once dirname(__file__) . '/Json/Decoder.php';
         return Sopha_Json_Decoder::decode($encodedValue, $objectDecodeType);
     }
 
@@ -94,7 +93,6 @@ class Sopha_Json
             return json_encode($valueToEncode);
         }
 
-        require_once dirname(__file__) . '/Json/Encoder.php';
         return Sopha_Json_Encoder::encode($valueToEncode, $cycleCheck);
     }
 }

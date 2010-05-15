@@ -49,7 +49,18 @@ class SophaModule extends ZoopModule
 		$this->addClass('Sopha_Db');
 		$this->addClass('Sopha_Document');
 		$this->addClass('Sopha_Exception');
-		$this->addClass('Sopha_Json');
+        $this->addClass('Sopha_Json');
+        $this->addClass('Sopha_Db_Exception', $this->path . '/Db/Exception.php');
+        $this->addClass('Sopha_Document_Exception', $this->path . '/Document/Exception.php');
+        $this->addClass('Sopha_Document_Attachment', $this->path . '/Document/Attachment.php');
+        $this->addClass('Sopha_Http_Exception', $this->path . '/Http/Exception.php');
+        $this->addClass('Sopha_Http_Request', $this->path . '/Http/Request.php');
+        $this->addClass('Sopha_Http_Response', $this->path . '/Http/Response.php');
+        $this->addClass('Sopha_Json_Exception', $this->path . '/Json/Exception.php');
+        $this->addClass('Sopha_Json_Encoder', $this->path . '/Json/Encoder.php');
+        $this->addClass('Sopha_Json_Decoder', $this->path . '/Json/Decoder.php');
+        $this->addClass('Sopha_View_Result', $this->path . '/View/Result.php');
+        $this->addClass('Sopha_View_Result_Exception', $this->path . '/View/Result/Exception.php');
 		//$this->depend('');
     }
 

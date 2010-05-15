@@ -19,9 +19,6 @@
  * @license    http://prematureoptimization.org/sopha/license/new-bsd 
  */
 
-require_once dirname(__file__) . '/Http/Request.php';
-require_once dirname(__file__) . '/Sopha_Document.php';
-
 class Sopha_Db
 {
     const COUCH_PORT = 5984;
@@ -50,7 +47,6 @@ class Sopha_Db
         $response = Sopha_Http_Request::get($this->_db_uri);
         
         if (! $response->isSuccess()) {
-            require_once dirname(__file__) . '/Db/Exception.php';
             switch($response->getStatus()) {
                 case 404:
                     throw new Sopha_Db_Exception("Database does not exist");
@@ -85,7 +81,6 @@ class Sopha_Db
         $response = $request->send();
 
         if (! $response->isSuccess()) {
-            require_once dirname(__file__) . '/Db/Exception.php';
             switch($response->getStatus()) {
                 case 404:
                     throw new Sopha_Db_Exception("Database does not exist");
@@ -115,7 +110,6 @@ class Sopha_Db
      */
     public function create($data, $doc = null)
     {
-        require_once dirname(__file__) . '/Sopha_Json.php';
         
         $url = $this->_db_uri;
         if ($doc) {
@@ -139,12 +133,10 @@ class Sopha_Db
                 $data['_id'] = $responseData['id'];
                 $data['_rev'] = $responseData['rev'];
 
-                require_once dirname(__file__) . '/Sopha_Document.php';                                                 
                 return new Sopha_Document($data, $url, $this);
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                     "{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -173,7 +165,6 @@ class Sopha_Db
             case 200:
                 $obj = new $class($response->getDocument(), $url, $this);
                 if (! $obj instanceof Sopha_Document) {
-                    require_once dirname(__file__) . '/Db/Exception.php';
                     throw new Sopha_Db_Exception("Class $class is expected to extend Sopha_Document");
                 }
                 return $obj;
@@ -184,7 +175,6 @@ class Sopha_Db
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                 	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -204,13 +194,6 @@ class Sopha_Db
      */
     public function update($data, $url = null)
     {
-        require_once dirname(__file__) . '/Sopha_Json.php';
-
-        // This doesn't make sense; it's already an URL!
-//        if ($url) {
-//        	$url = self::encodeDocPath($url);
-//        }
-        
         // Convert object to array if needed, and get revision and URL
         if ($data instanceof Sopha_Document) {
             if (! $url) $url = $data->getUrl();
@@ -220,18 +203,15 @@ class Sopha_Db
             if (! $url && isset($data['_id'])) $url = $this->_db_uri . $data['_id'];
             
         } else {
-            require_once dirname(__file__) . '/Db/Exception.php';
             throw new Sopha_Db_Exception("Data is expected to be either an array or a Sopha_Document object");
         }
         
         // Make sure we have a URL and a revision
         if (! $url) {
-            require_once dirname(__file__) . '/Db/Exception.php';
             throw new Sopha_Db_Exception("Unable to update a document without a known URL");
         }
         
         if (! isset($data['_rev'])) {
-            require_once dirname(__file__) . '/Db/Exception.php';
             throw new Sopha_Db_Exception("Unable to update a document without a known revision");
         }
         
@@ -244,12 +224,10 @@ class Sopha_Db
                 break;
                 
             case 409:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Cannot save updated document: revision conflict", 409);
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                 	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -281,7 +259,6 @@ class Sopha_Db
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                 	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -299,8 +276,6 @@ class Sopha_Db
      */
     public function getView($designDoc, $view, array $params = array(), $returnDoc = null)
     {
-        require_once dirname(__file__) . '/Sopha_Json.php';
-
         $url = $this->_db_uri . '_design/' . urlencode($designDoc) . '/_view/' . urlencode($view);
         $request = new Sopha_Http_Request($url);
         foreach($params as $k => $v) {
@@ -311,20 +286,16 @@ class Sopha_Db
         
         switch($response->getStatus()) {
             case 200:
-                require_once dirname(__file__) . '/View/Result.php';
-                
                 if (! $returnDoc) $returnDoc = Sopha_View_Result::RETURN_ARRAY;
                 return new Sopha_View_Result($response->getDocument(), $returnDoc, $this);
                 break;
                 
             case 404:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("View document '$designDoc/$view' does not exist", 
                     $response->getStatus());
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                 	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -341,8 +312,6 @@ class Sopha_Db
      * @return array
      */
     public function getShow($designDoc, $show, $id, array $params = array()) {
-        require_once dirname(__file__) . "/Sopha_Json.php";
-
         $url = $this->_db_uri . "_design/" . urlencode($designDoc) . "/_show/" . urlencode($show) . "/" . urlencode($id);
         $request = new Sopha_Http_Request($url);
         foreach($params as $k => $v) {
@@ -357,12 +326,10 @@ class Sopha_Db
                 break;
 
             case 404:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Show function '$designDoc/$show' does not exist", $response->getStatus());
                 break;
 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                 	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -379,8 +346,6 @@ class Sopha_Db
      */
     public function adHocView($view, array $params = array(), $return_doc = null)
     {
-        require_once dirname(__file__) . '/Sopha_Json.php';
-        
         $url = $this->_db_uri . '_temp_view';
         $data = Sopha_Json::encode($view);
         $request = new Sopha_Http_Request($url, Sopha_Http_Request::POST, $data);
@@ -393,14 +358,11 @@ class Sopha_Db
         
         switch($response->getStatus()) {
             case 200:
-                require_once dirname(__file__) . '/View/Result.php';
-                
                 if (! $return_doc) $return_doc = Sopha_View_Result::RETURN_ARRAY;
                 return new Sopha_View_Result($response->getDocument(), $return_doc, $this);
                 break;
                 
             default:
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: " . 
                     "{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
@@ -440,12 +402,10 @@ class Sopha_Db
                 break;
                 
             case 412: // DB already exists
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Database '$dbname' already exists", 412);
                 break;
                 
             default: // Unexpected
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: {$response->getStatus()}", 
                     $response->getStatus());
                 break;
@@ -471,12 +431,10 @@ class Sopha_Db
                 break;
                 
             case 404: // DB does not exists
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Database '$dbname' does not exist", 404);
                 break;
                 
             default: // Unexpected
-                require_once dirname(__file__) . '/Db/Exception.php';
                 throw new Sopha_Db_Exception("Unexpected response from server: {$response->getStatus()}", 
                     $response->getStatus());
                 break;
@@ -496,7 +454,6 @@ class Sopha_Db
         
         $response = Sopha_Http_Request::get($url);
         if (! $response->isSuccess()) {
-            require_once dirname(__file__) . '/Db/Exception.php';
             throw new Sopha_Db_Exception("Unexpected response from server: {$response->getStatus()}",
                 $response->getStatus());
         }
@@ -516,14 +473,12 @@ class Sopha_Db
     {
         // Validate host
         if (! preg_match('/^(?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,62}\.)*[a-zA-Z0-9][a-zA-Z0-9\-]{0,62}){1,254}$/', $host)) {
-            require_once dirname(__file__) . '/Sopha_Exception.php';
             throw new Sopha_Exception("Invalid host name: '$host'");
         }
         
         // Validate port
         $port = (integer) $port;
         if ($port < 0x1 || $port > 0xffff) {
-            require_once dirname(__file__) . '/Sopha_Exception.php';
             throw new Sopha_Exception("Invalid db port: '$port'");
         }
         
@@ -544,7 +499,6 @@ class Sopha_Db
     {
         // Validate dbname
         if (! preg_match('|^[a-z][a-z0-9_\$\(\)+\-/]*$|', $dbname)) {
-            require_once dirname(__file__) . '/Sopha_Exception.php';
             throw new Sopha_Exception("Invalid db name: '$dbname'");
         }
         

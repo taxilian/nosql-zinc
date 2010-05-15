@@ -20,8 +20,6 @@
  * @license    http://prematureoptimization.org/sopha/license/new-bsd 
  */
 
-require_once dirname(__file__) . '/../Http/Response.php';
-
 class Sopha_Http_Request
 {
     /**
@@ -249,7 +247,6 @@ class Sopha_Http_Request
         }
          
         if (! ($this->socket = fsockopen($host, $port, $errno, $errstr, 10))) {
-            require_once dirname(__file__) . '/../Exception.php';
             throw new Sopha_Exception("Error connecting to CouchDb server: [$errno] $errstr");
         }
         
@@ -264,7 +261,6 @@ class Sopha_Http_Request
     protected function write($data)
     {
         if (! $this->socket) {
-            require_once dirname(__file__) . '/../Exception.php';
             throw new Sopha_Exception("Lost connection to CouchDB server before sending data");
         }
         
@@ -279,7 +275,6 @@ class Sopha_Http_Request
     protected function read()
     {
         if (! $this->socket) {
-            require_once dirname(__file__) . '/../Http/Exception.php';
             throw new Sopha_Http_Exception("Lost connection to CouchDB server before reading response");
         }
         
@@ -326,7 +321,6 @@ class Sopha_Http_Request
         }
         
         if (! $this->socket || ! $status_line) {
-            require_once dirname(__file__) . '/../Http/Exception.php';
             throw new Sopha_Http_Exception("Unable to read HTTP response from server");
         }
 
@@ -345,7 +339,6 @@ class Sopha_Http_Request
 
                     $chunksize = hexdec(chop($line));
                     if (dechex($chunksize) != $hexchunksize) {
-                        require_once dirname(__file__) . '/../Http/Exception.php';
                         throw new Sopha_Http_Exception('Invalid chunk size "' . $hexchunksize . '" unable to read chunked body');
                     }
 
@@ -364,7 +357,6 @@ class Sopha_Http_Request
                 } while ($chunksize > 0);
                 
             } else {
-                require_once dirname(__file__) . '/../Http/Exception.php';
                 throw new Sopha_Http_Exception('Cannot handle "' . $headers['transfer-encoding'] . '" transfer encoding');
             }
 

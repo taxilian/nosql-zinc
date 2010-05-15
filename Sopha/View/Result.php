@@ -46,7 +46,6 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
         $this->_db = $db;
         if ($db === null) die("It's null!");
         if (! isset($result['rows'])) {
-            require_once dirname(__file__) . '/../View/Result/Exception.php';
             throw new Sopha_View_Result_Exception("Result does not seem to be a " . 
                 "valid view result data");
         }
@@ -62,18 +61,13 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
         $this->return_type = $return;
         
         if ($return == self::RETURN_JSON) {
-            require_once dirname(__file__) . '/../Json.php';
             
         } elseif (is_string($return)) {
-            require_once 'Zend/Loader.php';
             try {
-                Zend_Loader::loadClass($return);
-                
                 // Make sure that class is a subclass of Sopha_Document
                 // We do that now instead of in run-time
                 $testObj = new $return;
                 if (! $testObj instanceof Sopha_Document) {
-                    require_once dirname(__file__) . '/../View/Result/Exception.php';
                     throw new Sopha_View_Result_Exception("$return is not as subclass of " . 
                         "Sopha_Document as expected");
                 }
@@ -82,12 +76,10 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
                 $this->return_type = self::RETURN_OBJECT;
                 
             } catch (Zend_Exception $e) {
-                require_once dirname(__file__) . '/../View/Result/Exception.php';
                 throw new Sopha_View_Result_Exception("Unable to load class $return");
             }
             
         } elseif ($return != self::RETURN_ARRAY) {
-            require_once dirname(__file__) . '/../View/Result/Exception.php';
             throw new Sopha_View_Result_Exception("Invalid return type: $return");
         }
     }
@@ -314,13 +306,11 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
     
     public function offsetSet($offset, $value)
     {
-        require_once dirname(__file__) . '/../View/Result/Exception.php';
         throw new Sopha_View_Result_Exception("Trying to write to read-only result set");
     }
     
     public function offsetUnset($offset)
     {
-        require_once dirname(__file__) . '/../View/Result/Exception.php';
         throw new Sopha_View_Result_Exception("Trying to write to read-only result set");
     }
     
@@ -344,13 +334,11 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
     
     public function __set($key, $value)
     {
-        require_once dirname(__file__) . '/../View/Result/Exception.php';
         throw new Sopha_View_Result_Exception("Trying to write to read-only result set");
     }
     
     public function __unset($key) 
     {
-        require_once dirname(__file__) . '/../View/Result/Exception.php';
         throw new Sopha_View_Result_Exception("Trying to write to read-only result set");
     }
 }

@@ -49,6 +49,8 @@ class Sopha_Document
      * @var Sopha_Db
      */
     protected $_db       = null;
+
+    protected $_nullval  = null;
     
     public static function getDateArray($date = null, $format = null)
     {
@@ -74,7 +76,6 @@ class Sopha_Document
     {
         if ($db !== null) {
             if (! $db instanceof Sopha_Db) {
-                require_once dirname(__file__) . '/Document/Exception.php';
                 throw new Sopha_Document_Exception("\$db is expected to be a Sopha_Db object, got " . gettype($db));
             }
             
@@ -107,6 +108,23 @@ class Sopha_Document
     }
     
     /**
+     * Revert document / fetch any changes from the DB.  NOTE: all changes will be lost!
+     *
+     **/
+    public function revert()
+    {
+        if (!isset($this->_metadata['_rev'])) {
+            return; // This hasn't yet been saved; no need to revert (and impossible)
+        }
+        $newDoc = $this->_db->fetch($this->getId())->toArray(true);
+
+        $this->_metadata = array();
+        $this->_data = array();
+
+        $this->__construct($newDoc, $this->_url, $this->db);
+    }
+
+    /**
      * Save document as new or modified document
      * 
      */
@@ -131,7 +149,6 @@ class Sopha_Document
     public function delete()
     {
         if (! $this->_url || !$this->getId()) {
-            require_once dirname(__file__) . '/Document/Exception.php';
             throw new Sopha_Document_Exception("Unable to delete a document without known URL");
         }
         
@@ -217,8 +234,6 @@ class Sopha_Document
             return null;
         }
         
-        require_once dirname(__file__) . '/Document/Attachment.php';
-        
         // Check if we have some non-saved attachment data
         if (isset($this->_metadata['_attachments'][$name]['data'])) {
             return new Sopha_Document_Attachment($this->_url, $name, 
@@ -243,7 +258,6 @@ class Sopha_Document
      */
     public function __toString()
     {
-        require_once dirname(__file__) . '/Json.php';
         return Sopha_Json::encode(array_merge($this->_metadata, $this->_data));
     }
     
@@ -300,12 +314,12 @@ class Sopha_Document
      * @param  string $key
      * @return mixed
      */
-    public function __get($key)
+    public function &__get($key)
     {
         if (isset($this->_data[$key])) {
             return $this->_data[$key];
         } else {
-            return null;
+            return $this->_nullval;
         }
     }
     

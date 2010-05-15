@@ -44,7 +44,6 @@ class Sopha_Http_Response
     public function __construct($status, array $headers, $body)
     {
         if (! (preg_match('|^HTTP/(\S+)\s+(\S+)\s+(.+)$|', $status, $match))) {
-            require_once dirname(__file__) . '/../Http/Exception.php';
             throw new Sopha_Http_Exception("Unable to parse HTTP stataus line: '$status'");
         }
         
@@ -64,7 +63,6 @@ class Sopha_Http_Response
     public function getDocument()
     {
         if (! $this->document) {
-            require_once dirname(__file__) . '/../Sopha_Json.php';
             $this->document = Sopha_Json::decode($this->body);
         }
 
