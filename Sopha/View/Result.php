@@ -66,8 +66,8 @@ class Sopha_View_Result implements Countable, ArrayAccess, SeekableIterator
             try {
                 // Make sure that class is a subclass of Sopha_Document
                 // We do that now instead of in run-time
-                $testObj = new $return;
-                if (! $testObj instanceof Sopha_Document) {
+
+                if (!is_subclass_of($return, "Sopha_Document")) {
                     throw new Sopha_View_Result_Exception("$return is not as subclass of " . 
                         "Sopha_Document as expected");
                 }
