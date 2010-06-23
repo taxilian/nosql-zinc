@@ -30,7 +30,7 @@ class Sopha_Http_Request
     const PUT    = 'PUT';
     const DELETE = 'DELETE';
     
-    const HTTP_VER = '1.1';
+    const HTTP_VER = '1.0';
     
     protected $_url;
     
@@ -84,16 +84,46 @@ class Sopha_Http_Request
             $url['query'] = http_build_query($this->query);
         }
         
+        $etag = "";
+        $key = crc32(serialize($url));
+        if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET") {
+            global $__memcache_server;
+            $tagKey = $key . "_etags";
+            $etag = $__memcache_server->get($tagKey);
+        }
+
         // Build body and headers
         $body = $this->buildBody();
-        $headers = $this->buildHeaders($url);
+        $headers = $this->buildHeaders($url, $etag);
         
         // Send HTTP request and read response
         $this->connect($url['host'], $url['port']);
         $this->write($headers . "\r\n" . $body);
         list($status, $headers, $body) = $this->read();
+        if (strstr($status, "304") !== false) {
+            global $__memcache_server;
+            //echo_r($status);
+            //echo_r($headers);
+            //echo_r($body);
+            $status = $__memcache_server->get($key . "_status");
+            $headers = $__memcache_server->get($key . "_headers");
+            $body = $__memcache_server->get($key . "_body");
+        } elseif (defined("MEMCACHE_SOPHA_CACHE")) {
+            global $__memcache_server;
+            $etag = "";
+            //echo_r($status);
+            //echo_r($headers);
+            //echo_r($body);
+            $__memcache_server->set($key . "_status", $status);
+            $__memcache_server->set($key . "_headers", $headers);
+            $__memcache_server->set($key . "_body", $body);
+        }
         
-        return new Sopha_Http_Response($status, $headers, $body);
+        $response = new Sopha_Http_Response($status, $headers, $body);
+        if (defined("MEMCACHE_SOPHA_CACHE") && $etag == "") {
+            $__memcache_server->set($key . "_etags", $response->getHeader("Etag"));
+        }
+        return $response;
     }
     
     /**
@@ -171,15 +201,20 @@ class Sopha_Http_Request
      * @param  array $url parse_url() generated array
      * @return string
      */
-    protected function buildHeaders(array $url)
+    protected function buildHeaders(array $url, $etag = "")
     {
         $path = $url['path'];
+        $key = "";
         if (isset($url['query'])) $path .= '?' . $url['query'];
         
         $headers = $this->method . " " . $path . " " . 'HTTP/' . self::HTTP_VER . "\r\n";
+        $headers .= "Host: " . $url["host"] . "\r\n";
+        if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET") {
+            $headers .= "If-None-Match: $etag\r\n";
+        }
         
         if (! isset($this->headers['host']) && isset($url['host'])) {
-            $headers .= "Date: " . date(DATE_RFC822) . "\r\n";
+            //$headers .= "Date: " . date(DATE_RFC822) . "\r\n";
         }
         
         foreach($this->headers as $name => $header) {
@@ -239,16 +274,17 @@ class Sopha_Http_Request
      */
     protected function connect($host, $port)
     {
-        if ($this->socket) return;
+        if ($this->socket) $this->close();
         
-        if (isset(self::$connections["$host:$port"])) {
-            $this->socket = self::$connections["$host:$port"];
-            return;
-        }
+        //if (isset(self::$connections["$host:$port"])) {
+            //$this->socket = self::$connections["$host:$port"];
+            //return;
+        //}
          
         if (! ($this->socket = fsockopen($host, $port, $errno, $errstr, 10))) {
             throw new Sopha_Exception("Error connecting to CouchDb server: [$errno] $errstr");
         }
+        stream_set_timeout($this->socket, 600);
         
         self::$connections["$host:$port"] = $this->socket;
     }
@@ -392,6 +428,7 @@ class Sopha_Http_Request
     {
         if ($this->socket) {
             fclose($this->socket);
+            $this->socket = null;
         }
         
         if (isset(self::$connections["{$this->host}:{$this->port}"])) {

@@ -22,7 +22,8 @@
 class Sopha_Db
 {
     const COUCH_PORT = 5984;
-     
+
+    protected $_lastEtag = ""; 
     protected $_db_uri;
     
     /**
@@ -58,6 +59,7 @@ class Sopha_Db
                     break;
             }
         }
+        $this->_lastEtag = trim($response->getHeader("Etag"), '"');
         
         return $response->getDocument();
     }
@@ -93,6 +95,7 @@ class Sopha_Db
             }
         }
         
+        $this->_lastEtag = trim($response->getHeader("Etag"), '"');
         $doc = $response->getDocument();
         return $doc['rows'];
     }
@@ -133,6 +136,7 @@ class Sopha_Db
                 $data['_id'] = $responseData['id'];
                 $data['_rev'] = $responseData['rev'];
 
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 return new Sopha_Document($data, $url, $this);
                 break;
                 
@@ -163,6 +167,7 @@ class Sopha_Db
         
         switch($response->getStatus()) {
             case 200:
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 $obj = new $class($response->getDocument(), $url, $this);
                 if (! $obj instanceof Sopha_Document) {
                     throw new Sopha_Db_Exception("Class $class is expected to extend Sopha_Document");
@@ -219,6 +224,7 @@ class Sopha_Db
         
         switch ($response->getStatus()) {
             case 201:
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 $responseData = $response->getDocument();
                 return $responseData['rev'];
                 break;
@@ -287,6 +293,7 @@ class Sopha_Db
         switch($response->getStatus()) {
             case 200:
                 if (! $returnDoc) $returnDoc = Sopha_View_Result::RETURN_ARRAY;
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 return new Sopha_View_Result($response->getDocument(), $returnDoc, $this);
                 break;
                 
@@ -322,6 +329,7 @@ class Sopha_Db
 
         switch($response->getStatus()) {
             case 200:
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 return $response->getDocument();
                 break;
 
@@ -359,6 +367,7 @@ class Sopha_Db
         switch($response->getStatus()) {
             case 200:
                 if (! $return_doc) $return_doc = Sopha_View_Result::RETURN_ARRAY;
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
                 return new Sopha_View_Result($response->getDocument(), $return_doc, $this);
                 break;
                 
@@ -458,6 +467,7 @@ class Sopha_Db
                 $response->getStatus());
         }
         
+        $this->_lastEtag = trim($response->getHeader("Etag"), '"');
         return $response->getDocument();
     }
     
