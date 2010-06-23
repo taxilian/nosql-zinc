@@ -63,6 +63,17 @@ class Sopha_Db
         
         return $response->getDocument();
     }
+
+    /**
+     * getLastEtag returns the Etag for the last couchdb request made from this object
+     * 
+     * @access public
+     * @return void
+     */
+    public function getLastEtag()
+    {
+        return $this->_lastEtag;
+    }
     
     /**
      * Get all documents from DB
