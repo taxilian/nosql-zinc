@@ -108,7 +108,7 @@ class Sopha_Http_Request
             $status = $__memcache_server->get($key . "_status");
             $headers = $__memcache_server->get($key . "_headers");
             $body = $__memcache_server->get($key . "_body");
-        } elseif (defined("MEMCACHE_SOPHA_CACHE")) {
+        } elseif (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET") {
             global $__memcache_server;
             $etag = "";
             //echo_r($status);
@@ -120,7 +120,7 @@ class Sopha_Http_Request
         }
         
         $response = new Sopha_Http_Response($status, $headers, $body);
-        if (defined("MEMCACHE_SOPHA_CACHE") && $etag == "") {
+        if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET" && $etag == "") {
             $__memcache_server->set($key . "_etags", $response->getHeader("Etag"));
         }
         return $response;
