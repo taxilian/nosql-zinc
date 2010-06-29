@@ -321,6 +321,41 @@ class Sopha_Db
     }
 
     /**
+     * Call a list function of a design document on a given view and return the result as a string
+     *
+     * @param  string $designDoc design document name
+     * @param  string $list      list function name
+     * @param  string $view      view to display in the list
+     * @param  array  $params    parameters to pass to the view
+     * @return array
+     */
+    public function getList($designDoc, $list, $view, array $params = array()) {
+        $url = $this->_db_uri . "_design/" . urlencode($designDoc) . "/_list/" . urlencode($list) . "/" . urlencode($view);
+        $request = new Sopha_Http_Request($url);
+        foreach($params as $k => $v) {
+            $request->addQueryParam($k, $v);
+        }
+
+        $response = $request->send();
+
+        switch($response->getStatus()) {
+            case 200:
+                $this->_lastEtag = trim($response->getHeader("Etag"), '"');
+                return $response->getBody();
+                break;
+
+            case 404:
+                throw new Sopha_Db_Exception("list function '$designDoc/$list' does not exist", $response->getStatus());
+                break;
+
+            default:
+                throw new Sopha_Db_Exception("Unexpected response from server: " . 
+                	"{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
+                break;
+        }
+    }
+
+    /**
      * Call a show function of a design document and return the result as a string
      *
      * @param  string $designDoc design document name
