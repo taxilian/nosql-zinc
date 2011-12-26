@@ -9,7 +9,7 @@
  * with this package in the file LICENSE.
  * It is also available through the world-wide-web at this URL:
  * http://prematureoptimization.org/sopha/license/new-bsd
- * 
+ *
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@zend.com so we can send you a copy immediately.
@@ -17,7 +17,7 @@
  * @package    Sopha
  * @subpackage Json
  * @version    $Id$
- * @license    http://prematureoptimization.org/sopha/license/new-bsd 
+ * @license    http://prematureoptimization.org/sopha/license/new-bsd
  */
 
 /**
@@ -182,7 +182,7 @@ class Sopha_Json_Decoder
      * Decodes an object of the form:
      *  { "attribute: value, "attribute2" : value,...}
      *
-     * If Sopha_Json_Encoder was used to encode the original object then 
+     * If Sopha_Json_Encoder was used to encode the original object then
      * a special attribute called __className which specifies a class
      * name that should wrap the data contained within the encoded source.
      *

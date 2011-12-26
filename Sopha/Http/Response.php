@@ -9,7 +9,7 @@
  * with this package in the file LICENSE.
  * It is also available through the world-wide-web at this URL:
  * http://prematureoptimization.org/sopha/license/new-bsd
- * 
+ *
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@zend.com so we can send you a copy immediately.
@@ -17,25 +17,25 @@
  * @package    Sopha
  * @subpackage Http
  * @version    $Id$
- * @license    http://prematureoptimization.org/sopha/license/new-bsd 
+ * @license    http://prematureoptimization.org/sopha/license/new-bsd
  */
 
 class Sopha_Http_Response
 {
     protected $vesion   = null;
-    
+
     protected $code     = null;
-    
+
     protected $message  = null;
-    
+
     protected $headers  = array();
-    
+
     protected $body     = null;
-    
+
     protected $document = null;
-    
+
     /**
-     * Create a new response object 
+     * Create a new response object
      *
      * @param string $status
      * @param array  $headers
@@ -46,15 +46,15 @@ class Sopha_Http_Response
         if (! (preg_match('|^HTTP/(\S+)\s+(\S+)\s+(.+)$|', $status, $match))) {
             throw new Sopha_Http_Exception("Unable to parse HTTP stataus line: '$status'");
         }
-        
+
         $this->version = $match[1];
         $this->code    = $match[2];
         $this->message = $match[3];
-        
+
         $this->headers = $headers;
         $this->body    = $body;
     }
-    
+
     /**
      * Get the document returned in the body (JSON decoded)
      *
@@ -68,7 +68,7 @@ class Sopha_Http_Response
 
         return $this->document;
     }
-    
+
     /**
      * Get the response body as string
      *
@@ -78,7 +78,7 @@ class Sopha_Http_Response
     {
         return $this->body;
     }
-    
+
     /**
      * Get the HTTP status code
      *
@@ -88,7 +88,7 @@ class Sopha_Http_Response
     {
         return $this->code;
     }
-    
+
     /**
      * Get the HTTP response message (eg. "Not Found")
      *
@@ -98,7 +98,7 @@ class Sopha_Http_Response
     {
         return $this->message;
     }
-    
+
     /**
      * Get all headers - as an array or as string
      *
@@ -117,7 +117,7 @@ class Sopha_Http_Response
             return $this->headers;
         }
     }
-    
+
     /**
      * Get a specific HTTP response header
      *
@@ -129,7 +129,7 @@ class Sopha_Http_Response
         $header = strtolower($header);
         return isset($this->headers[$header]) ? $this->headers[$header] : null;
     }
-    
+
     /**
      * Get the HTTP response version
      *
@@ -139,7 +139,7 @@ class Sopha_Http_Response
     {
         return $this->version;
     }
-    
+
     /**
      * Check whether or not the response is a success
      *
@@ -149,7 +149,7 @@ class Sopha_Http_Response
     {
         return ((int) $this->code / 100 == 2);
     }
-    
+
     /**
      * Convert the response object to a string
      *
@@ -157,6 +157,6 @@ class Sopha_Http_Response
      */
     public function __toString()
     {
-        return $this->getAllHeaders(true) . "\r\n" . $this->getBody(); 
+        return $this->getAllHeaders(true) . "\r\n" . $this->getBody();
     }
 }

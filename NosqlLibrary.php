@@ -1,8 +1,8 @@
 <?php
-class NosqlLibrary extends ZoopLibrary
+class NosqlLibrary extends ZincLibrary
 {
-	protected function init()
-	{
-		$this->registerMod('Sopha');
-	}
+    protected function init()
+    {
+        $this->registerMod('Sopha');
+    }
 }

@@ -9,7 +9,7 @@
  * with this package in the file LICENSE.
  * It is also available through the world-wide-web at this URL:
  * http://prematureoptimization.org/sopha/license/new-bsd
- * 
+ *
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@zend.com so we can send you a copy immediately.
@@ -17,13 +17,13 @@
  * @package    Sopha
  * @subpackage Document
  * @version    $Id$
- * @license    http://prematureoptimization.org/sopha/license/new-bsd 
+ * @license    http://prematureoptimization.org/sopha/license/new-bsd
  */
 
 /**
  * Sopha Document Attachment class
- * 
- * Sopha_Document_Attachment objects are simple container objects that 
+ *
+ * Sopha_Document_Attachment objects are simple container objects that
  * represent attachments to CouchDb documents
  *
  */
@@ -31,42 +31,42 @@ class Sopha_Document_Attachment
 {
     /**
      * Parent document URL (including server)
-     * 
-     * @var string 
+     *
+     * @var string
      */
     protected $docUrl = null;
-    
+
     /**
      * Attachment name
-     * 
+     *
      * @var string
      */
     protected $name = null;
-    
+
     /**
      * Attachment MIME type
-     * 
+     *
      * @var string
      */
     protected $type = null;
-    
+
     /**
      * Attachment data (actual bytes)
-     * 
+     *
      * @var string
      */
     protected $_data = null;
-    
+
     /**
      * Attachment size in bytes
-     * 
+     *
      * @var integer
      */
     protected $size = null;
-    
+
     /**
      * Create a new Attachment object
-     * 
+     *
      * @param string $docUrl
      * @param string $name
      * @param string $type
@@ -76,14 +76,14 @@ class Sopha_Document_Attachment
     {
         $this->docUrl = $docUrl;
         $this->name   = $name;
-        
+
         if ($type) {
             if (! $data) {
                 throw new Sopha_Document_Exception("Attachment cannot be created with type and no data");
             }
             $this->type = $type;
         }
-        
+
         if ($data) {
             if (! $type) {
                 throw new Sopha_Document_Exception("Attachment cannot be created with data and no type");
@@ -92,10 +92,10 @@ class Sopha_Document_Attachment
             $this->size = strlen($data);
         }
     }
-    
+
     /**
      * Get the attachment's name
-     * 
+     *
      * @return string
      */
     public function getName()
@@ -105,17 +105,17 @@ class Sopha_Document_Attachment
 
     /**
      * Get the attachment's parent document's URL
-     * 
+     *
      * @return string
      */
     public function getParentDocUrl()
     {
         return $this->docUrl;
     }
-    
+
     /**
      * Get the attachment's MIME type. Will lazy-load from DB if not yet loaded
-     * 
+     *
      * @return string
      */
     public function getMimeType()
@@ -123,10 +123,10 @@ class Sopha_Document_Attachment
         if ($this->type === null) $this->_lazyLoadData();
         return $this->type;
     }
-    
+
     /**
      * Get the actual data.  Will lazy-load from DB if not yet loaded
-     * 
+     *
      * @return string
      */
     public function getData()
@@ -134,10 +134,10 @@ class Sopha_Document_Attachment
         if ($this->data === null) $this->_lazyLoadData();
         return $this->data;
     }
-    
+
     /**
      * Get the size of the attachment in bytes
-     * 
+     *
      * @return integer
      */
     public function getSize()
@@ -148,25 +148,25 @@ class Sopha_Document_Attachment
             return strlen($this->getData());
         }
     }
-    
+
     /**
      * Send the attachment as an HTTP response directly to output
-     * 
-     * Will set the content-type and content-length headers and send the 
-     * attachment data directly to the user as response body. This provides 
+     *
+     * Will set the content-type and content-length headers and send the
+     * attachment data directly to the user as response body. This provides
      * less control over content - but is a far more memory efficient method
      * to send attachments directly to the user
-     * 
+     *
      * @todo   Finish implementing the stuff here!
-     * 
-     * @return void 
+     *
+     * @return void
      */
     public function passthru()
     {
         if (headers_sent()) {
             throw new Sopha_Document_Exception("Can't passthru attachment: headers already sent");
         }
-        
+
         if ($this->data) {
             header("Content-type: " . $this->getMimeType());
             echo $this->data;
@@ -176,7 +176,7 @@ class Sopha_Document_Attachment
             echo $this->getData();
         }
     }
-    
+
     /**
      * Lazy-load the Attachment data if it was not already loaded
      */
@@ -189,23 +189,23 @@ class Sopha_Document_Attachment
             case 200:
                 $this->data = $response->getBody();
                 $this->type = $response->getHeader('content-type');
-                $this->size = $response->getHeader('content-length'); 
+                $this->size = $response->getHeader('content-length');
                 break;
-                
+
             case 404:
                 throw new Sopha_Document_Exception("Attachment '$this->name' does not exist", $response->getStatus());
                 break;
-                
+
             default:
-                throw new Sopha_Db_Exception("Unexpected response from server: " . 
+                throw new Sopha_Db_Exception("Unexpected response from server: " .
                     "{$response->getStatus()} {$response->getMessage()}", $response->getStatus());
                 break;
         }
     }
-    
+
     /**
      * Create a new attachment object from HTTP response
-     * 
+     *
      * @param  string                    $docUrl
      * @param  string                    $name
      * @param  Sopha_Http_Response       $response
@@ -213,9 +213,9 @@ class Sopha_Document_Attachment
      */
     static public function fromReponse($docUrl, $name, Sopha_Http_Response $response)
     {
-         $att = new Sopha_Document_Attachment($docUrl, $name, 
+         $att = new Sopha_Document_Attachment($docUrl, $name,
             $response->getHeader('content-type'), $response->getBody());
-            
+
          return $att;
     }
 }

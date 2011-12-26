@@ -9,7 +9,7 @@
  * with this package in the file LICENSE.
  * It is also available through the world-wide-web at this URL:
  * http://prematureoptimization.org/sopha/license/new-bsd
- * 
+ *
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@zend.com so we can send you a copy immediately.
@@ -17,7 +17,7 @@
  * @package    Sopha
  * @subpackage Document
  * @version    $Id$
- * @license    http://prematureoptimization.org/sopha/license/new-bsd 
+ * @license    http://prematureoptimization.org/sopha/license/new-bsd
  */
 
 class Sopha_Document
@@ -28,21 +28,21 @@ class Sopha_Document
      * @var array
      */
     protected $_data     = array();
-    
+
     /**
      * Array of metadata
      *
      * @var array
      */
     protected $_metadata = array();
-    
+
     /**
      * Document URL
      *
      * @var string
      */
     protected $_url      = null;
-    
+
     /**
      * Associated database object (if any)
      *
@@ -51,7 +51,7 @@ class Sopha_Document
     protected $_db       = null;
 
     protected $_nullval  = null;
-    
+
     public static function getDateArray($date = null, $format = null)
     {
         if ($format === null) $format = array("Y", "m", "d");
@@ -59,7 +59,7 @@ class Sopha_Document
         $out = array();
         foreach ($format as $cur)
         {
-            $val = $date->format($cur); 
+            $val = $date->format($cur);
             $out[] = is_numeric($val) ? intval($val) : $val;
         }
         return $out;
@@ -78,19 +78,19 @@ class Sopha_Document
             if (! $db instanceof Sopha_Db) {
                 throw new Sopha_Document_Exception("\$db is expected to be a Sopha_Db object, got " . gettype($db));
             }
-            
+
             $this->_db = $db;
         }
 
         if (count($data) == 0 && $url === null && $db === null)
             return;
-        
+
         if (!isset($data["_id"])) {
             $data["_id"] = uniqid("", true);
         }
-        
+
         foreach($data as $k => $v) {
-            if (substr($k, 0, 1) == '_') { 
+            if (substr($k, 0, 1) == '_') {
                 $this->_metadata[$k] = $v;
             } else {
                 $this->_data[$k] = $v;
@@ -106,7 +106,7 @@ class Sopha_Document
                 $this->_url = $db->getUrl() . urlencode($data['_id']);
         }
     }
-    
+
     /**
      * Revert document / fetch any changes from the DB.  NOTE: all changes will be lost!
      *
@@ -126,22 +126,22 @@ class Sopha_Document
 
     /**
      * Save document as new or modified document
-     * 
+     *
      */
     public function save()
     {
         if (! isset($this->_metadata['_rev'])) { // Creating a new document
             $newDoc = $this->_db->create($this->_data, $this->_url);
-            
+
             $this->_metadata['_id']  = $newDoc->getId();
             $this->_metadata['_rev'] = $newDoc->getRevision();
             $this->_url              = $newDoc->getUrl();
-            
+
         } else { // Updating an existing document
             $this->_db->update($this, $this->_url);
         }
     }
-    
+
     /**
      * Delete document from DB
      *
@@ -151,10 +151,10 @@ class Sopha_Document
         if (! $this->_url || !$this->getId()) {
             throw new Sopha_Document_Exception("Unable to delete a document without known URL");
         }
-        
+
         $this->_db->delete($this->getId(), $this->getRevision());
     }
-    
+
     /**
      * Get the current document's revision (if known)
      *
@@ -162,9 +162,9 @@ class Sopha_Document
      */
     public function getRevision()
     {
-        return (isset($this->_metadata['_rev']) ? $this->_metadata['_rev'] : null); 
+        return (isset($this->_metadata['_rev']) ? $this->_metadata['_rev'] : null);
     }
-    
+
     /**
      * Get the current document's ID (if known)
      *
@@ -174,7 +174,7 @@ class Sopha_Document
     {
         return (isset($this->_metadata['_id']) ? $this->_metadata['_id'] : null);
     }
-    
+
     /**
      * Get the current document's URL (if known)
      *
@@ -184,25 +184,25 @@ class Sopha_Document
     {
         return $this->_url;
     }
-    
+
     /**
      * Get the current document's array of attachments (if any)
-     * 
+     *
      * This only returns information about the attachments - not the actual data
      *
      * @return array
      */
     public function getAttachments()
     {
-        return (isset($this->_metadata['_attachments']) ? $this->_metadata['_attachments'] : array()); 
+        return (isset($this->_metadata['_attachments']) ? $this->_metadata['_attachments'] : array());
     }
-    
+
     /**
      * Set an attachement to the document
-     * 
-     * Will either set a new attachment or replace an existing one with the 
+     *
+     * Will either set a new attachment or replace an existing one with the
      * same name
-     * 
+     *
      * @param  string $name
      * @param  string $type Content type
      * @param  string $data  Attachement data
@@ -215,42 +215,42 @@ class Sopha_Document
             'content_type' => $type,
             'data'         => base64_encode($data)
         );
-        
+
         $this->_metadata['_attachments'][$name] = $attachment;
     }
-    
+
     /**
      * Get one of the document's attachments as an Attachment object
-     * 
+     *
      * @param  string $name Attachment name
-     * @return Sopha_Document_Attachment or null if no such attachment 
+     * @return Sopha_Document_Attachment or null if no such attachment
      */
     public function getAttachment($name)
     {
         // Make sure the attachment is supposed to exist
-        if (! isset($this->_metadata['_attachments']) || 
+        if (! isset($this->_metadata['_attachments']) ||
             ! isset($this->_metadata['_attachments'][$name])) {
-            
+
             return null;
         }
-        
+
         // Check if we have some non-saved attachment data
         if (isset($this->_metadata['_attachments'][$name]['data'])) {
-            return new Sopha_Document_Attachment($this->_url, $name, 
+            return new Sopha_Document_Attachment($this->_url, $name,
                 $this->_metadata['_attachments'][$name]['content_type'],
                 base64_decode($this->_metadata['_attachments'][$name]['data']));
-                 
+
         // Usually we dont - just return a stub Attachment object which will
         // lazy-load the data from DB. Requires a URL though.
         } else {
             if (! $this->_url) {
                 return null;
             }
-                   
+
             return new Sopha_Document_Attachment($this->_url, $name);
         }
     }
-    
+
     /**
      * Convert the document to a string - will return a JSON encoded object
      *
@@ -260,10 +260,10 @@ class Sopha_Document
     {
         return Sopha_Json::encode(array_merge($this->_metadata, $this->_data));
     }
-    
+
     /**
      * Convert the document to an associative array
-     * 
+     *
      * @param  boolean $metadata Whether to export metadata as well
      * @return array
      */
@@ -277,7 +277,7 @@ class Sopha_Document
     /**
      * Convert the specified field to a string or DateTime object and return it
      * Assumes that the field in question is formated as "Y-m-d"
-     * 
+     *
      * @param  string $column which column to return
      * @param  string $format a "date" compatible format string; if null, returns a DateTime object
      * @return mixed
@@ -291,23 +291,23 @@ class Sopha_Document
         else
             return $dt->format($format);
     }
-    
+
     /**
      * Load data from an associative array to document object
-     * 
+     *
      * @param array $data
      */
     public function fromArray(array $data)
     {
         foreach($data as $k => $v) {
-            if (substr($k, 0, 1) == '_') { 
+            if (substr($k, 0, 1) == '_') {
                 $this->_metadata[$k] = $v;
             } else {
                 $this->_data[$k] = $v;
             }
         }
     }
-    
+
     /**
      * Allow direct access to reading properties
      *
@@ -322,7 +322,7 @@ class Sopha_Document
             return $this->_nullval;
         }
     }
-    
+
     /**
      * Allow direct access to writing document properties
      *
@@ -333,7 +333,7 @@ class Sopha_Document
     {
         $this->_data[$key] = $value;
     }
-    
+
     /**
      * Check if a document property exists
      *
@@ -344,7 +344,7 @@ class Sopha_Document
     {
         return isset($this->_data[$key]);
     }
-    
+
     /**
      * Unset a document property if it exists
      *

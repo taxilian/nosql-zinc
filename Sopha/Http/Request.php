@@ -9,7 +9,7 @@
  * with this package in the file LICENSE.
  * It is also available through the world-wide-web at this URL:
  * http://prematureoptimization.org/sopha/license/new-bsd
- * 
+ *
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@zend.com so we can send you a copy immediately.
@@ -17,7 +17,7 @@
  * @package    Sopha
  * @subpackage Http
  * @version    $Id$
- * @license    http://prematureoptimization.org/sopha/license/new-bsd 
+ * @license    http://prematureoptimization.org/sopha/license/new-bsd
  */
 
 class Sopha_Http_Request
@@ -29,33 +29,33 @@ class Sopha_Http_Request
     const POST   = 'POST';
     const PUT    = 'PUT';
     const DELETE = 'DELETE';
-    
+
     const HTTP_VER = '1.0';
-    
+
     protected $_url;
-    
+
     protected $method;
-    
+
     protected $headers = array();
-    
+
     protected $query = array();
-    
+
     protected $_data;
-    
+
     protected $socket = null;
-    
+
     /**
      * Static array of all connections to servers
      *
      * @var array
      */
     static protected $connections = array();
-    
+
     /**
      * Create a new HTTP request object
      *
      * @todo  validation
-     * 
+     *
      * @param string $url    URL to request
      * @param string $method HTTP request method: GET, POST, PUT, DELETE
      * @param string $data   HTTP request body to send
@@ -66,7 +66,7 @@ class Sopha_Http_Request
         $this->method = $method;
         $this->data   = $data;
     }
-    
+
     /**
      * Send the HTTP request, return an HTTP response
      *
@@ -75,15 +75,15 @@ class Sopha_Http_Request
     public function send()
     {
         $url = parse_url($this->url);
-        
+
         // Build query string
         if (isset($url['query'])) $this->query = array_merge(
             parse_str($url['query']), $this->query);
-            
+
         if (! empty($this->query)) {
             $url['query'] = http_build_query($this->query);
         }
-        
+
         $etag = "";
         $key = crc32(serialize($url));
         if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET") {
@@ -95,7 +95,7 @@ class Sopha_Http_Request
         // Build body and headers
         $body = $this->buildBody();
         $headers = $this->buildHeaders($url, $etag);
-        
+
         // Send HTTP request and read response
         $this->connect($url['host'], $url['port']);
         $this->write($headers . "\r\n" . $body);
@@ -118,14 +118,14 @@ class Sopha_Http_Request
             $__memcache_server->set($key . "_headers", $headers);
             $__memcache_server->set($key . "_body", $body);
         }
-        
+
         $response = new Sopha_Http_Response($status, $headers, $body);
         if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET" && $etag == "") {
             $__memcache_server->set($key . "_etags", $response->getHeader("Etag"));
         }
         return $response;
     }
-    
+
     /**
      * Add a parameter to the query string (part after the '?' in the URL)
      *
@@ -136,11 +136,11 @@ class Sopha_Http_Request
     {
         $this->query[(string) $key] = $value;
     }
-    
+
     /***
      * Shortcut static methods
      **/
-    
+
     /**
      * Send a simple GET request
      *
@@ -152,7 +152,7 @@ class Sopha_Http_Request
         $request = new self($url);
         return $request->send();
     }
-    
+
     /**
      * Send a simple POST request
      *
@@ -165,7 +165,7 @@ class Sopha_Http_Request
         $request = new self($url, self::POST, $data);
         return $request->send();
     }
-    
+
     /**
      * Send a simple PUT request
      *
@@ -178,9 +178,9 @@ class Sopha_Http_Request
         $request = new self($url, self::PUT, $data);
         return $request->send();
     }
-    
+
     /**
-     * Send a simple DELETE request 
+     * Send a simple DELETE request
      *
      * @param  string $url
      * @return Sopha_Http_Response
@@ -190,13 +190,13 @@ class Sopha_Http_Request
         $request = new self($url, self::DELETE);
         return $request->send();
     }
-    
+
     /**
      * Internal HTTP handling and connection methods
      */
-    
+
     /**
-     * Build HTTP request header string 
+     * Build HTTP request header string
      *
      * @param  array $url parse_url() generated array
      * @return string
@@ -206,24 +206,24 @@ class Sopha_Http_Request
         $path = $url['path'];
         $key = "";
         if (isset($url['query'])) $path .= '?' . $url['query'];
-        
+
         $headers = $this->method . " " . $path . " " . 'HTTP/' . self::HTTP_VER . "\r\n";
         $headers .= "Host: " . $url["host"] . "\r\n";
         if (defined("MEMCACHE_SOPHA_CACHE") && $this->method == "GET") {
             $headers .= "If-None-Match: $etag\r\n";
         }
-        
+
         if (! isset($this->headers['host']) && isset($url['host'])) {
             //$headers .= "Date: " . date(DATE_RFC822) . "\r\n";
         }
-        
+
         foreach($this->headers as $name => $header) {
             $headers .= $this->buildHeadersRecursive($name, $header);
         }
-        
+
         return $headers;
     }
-    
+
     /**
      * Create the HTTP request body string
      *
@@ -231,30 +231,30 @@ class Sopha_Http_Request
      */
     protected function buildBody()
     {
-       if ($this->method == self::GET    || 
+       if ($this->method == self::GET    ||
            $this->method == self::DELETE ||
            ! strlen($this->data)) {
-               
+
            return '';
        }
-       
+
        $this->headers['content-type'] = 'application/json';
        $this->headers['content-length'] = strlen($this->data);
        return $this->data;
     }
-    
+
     /**
-     * Build a single header line or a set of header lines with the same name 
+     * Build a single header line or a set of header lines with the same name
      * if an array was provided
      *
-     * @param  string       $name 
+     * @param  string       $name
      * @param  string|array $value
      * @return string
      */
     protected function buildHeadersRecursive($name, $value)
     {
         $return = '';
-        
+
         if (is_array($value)) {
             foreach ($value as $val) {
                 $return .= $this->buildHeadersArray($name, $val);
@@ -262,10 +262,10 @@ class Sopha_Http_Request
         } else {
             $return = ucfirst(strtolower($name)) . ": $value\r\n";
         }
-        
+
         return $return;
     }
-    
+
     /**
      * Connect to HTTP couch server
      *
@@ -275,20 +275,20 @@ class Sopha_Http_Request
     protected function connect($host, $port)
     {
         if ($this->socket) $this->close();
-        
+
         //if (isset(self::$connections["$host:$port"])) {
             //$this->socket = self::$connections["$host:$port"];
             //return;
         //}
-         
+
         if (! ($this->socket = fsockopen($host, $port, $errno, $errstr, 10))) {
             throw new Sopha_Exception("Error connecting to CouchDb server: [$errno] $errstr");
         }
         stream_set_timeout($this->socket, 600);
-        
+
         self::$connections["$host:$port"] = $this->socket;
     }
-    
+
     /**
      * Send request data to HTTP couch server
      *
@@ -299,10 +299,10 @@ class Sopha_Http_Request
         if (! $this->socket) {
             throw new Sopha_Exception("Lost connection to CouchDB server before sending data");
         }
-        
+
         fwrite($this->socket, $data);
     }
-    
+
     /**
      * Read response from HTTP couch server
      *
@@ -313,27 +313,27 @@ class Sopha_Http_Request
         if (! $this->socket) {
             throw new Sopha_Http_Exception("Lost connection to CouchDB server before reading response");
         }
-        
+
         $status_line = null;
         $status_code = null;
-		$headers = array();
-		$last_header = null;        
+        $headers = array();
+        $last_header = null;
 
         // First, read response headers and put them into an associative array
         while (($line = fgets($this->socket))) {
-        	if (! $status_line && strpos($line, 'HTTP') === 0) {
-        		$status_line = trim($line);
-        		continue;
-        	}
-        	
-        	$status_code = (int) substr($status_line, 9, 3);
-        	
-        	$line = trim($line);
-        	if (! $line) break;
+            if (! $status_line && strpos($line, 'HTTP') === 0) {
+                $status_line = trim($line);
+                continue;
+            }
+
+            $status_code = (int) substr($status_line, 9, 3);
+
+            $line = trim($line);
+            if (! $line) break;
 
             if (preg_match("|^([\w-]+):\s+(.+)|", $line, $m)) {
                 unset($last_header);
-                
+
                 $h_name = strtolower($m[1]);
                 $h_value = $m[2];
 
@@ -345,24 +345,24 @@ class Sopha_Http_Request
                     $headers[$h_name][] = $h_value;
                     end($headers[$h_name]);
                     $last_header = &$headers[$h_name][key($headers[$h_name])];
-                    
+
                 } else {
                     $headers[$h_name] = $h_value;
                     $last_header = &$headers[$h_name];
                 }
-                
+
             } elseif (preg_match("|^\s+(.+)$|", $line, $m) && $last_header !== null) {
                 $headers[$last_header] .= $m[1];
             }
         }
-        
+
         if (! $this->socket || ! $status_line) {
             throw new Sopha_Http_Exception("Unable to read HTTP response from server");
         }
 
         // Keep on reading the body - according to the headers
         $body = '';
-        
+
         // Chunked transfer-encoding
         if (isset($headers['transfer-encoding'])) {
             if ($headers['transfer-encoding'] == 'chunked') {
@@ -387,11 +387,11 @@ class Sopha_Http_Request
 
                     // Read the end of line after the chunk
                     fgets($this->socket);
-                    
+
                     $body .= $chunk;
-                    
+
                 } while ($chunksize > 0);
-                
+
             } else {
                 throw new Sopha_Http_Exception('Cannot handle "' . $headers['transfer-encoding'] . '" transfer encoding');
             }
@@ -405,7 +405,7 @@ class Sopha_Http_Request
                 $left_to_read -= strlen($chunk);
                 $body .= $chunk;
             }
-            
+
         // If code is 304 or 204 no body is expected
         } elseif ($status_code == 304 || $status_code == 204) {
             $body .= '';
@@ -416,10 +416,10 @@ class Sopha_Http_Request
                 $body .= $buff;
             }
         }
-        
+
         return array($status_line, $headers, $body);
     }
-    
+
     /**
      * Close connection to HTTP couch server
      *
@@ -430,7 +430,7 @@ class Sopha_Http_Request
             fclose($this->socket);
             $this->socket = null;
         }
-        
+
         if (isset(self::$connections["{$this->host}:{$this->port}"])) {
             unset(self::$connections["{$this->host}:{$this->port}"]);
         }
